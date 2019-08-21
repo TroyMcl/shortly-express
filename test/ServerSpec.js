@@ -24,7 +24,7 @@ describe('', function() {
 
   before(function() {
     server = app.listen(4568, function() {
-      console.log('Shortly is listening on 4568');
+      console.log('Shortly the test is listening on 4568');
     });
   });
 
@@ -35,7 +35,6 @@ describe('', function() {
   beforeEach(function() {
     // log out currently signed in user
     request('http://127.0.0.1:4568/logout', function(error, res, body) {});
-
     // delete link for roflzoo from db so it can be created later for the test
     db.knex('urls')
       .where('url', '=', 'http://roflzoo.com/')
@@ -72,11 +71,11 @@ describe('', function() {
       });
   });
 
-  describe('Link creation:', function() {
+  xdescribe('Link creation:', function() {
 
     var requestWithSession = request.defaults({jar: true});
 
-    xbeforeEach(function(done) {
+    beforeEach(function(done) {
       // create a user that we can then log-in with
       new User({
         'username': 'Phillip',
@@ -251,7 +250,7 @@ describe('', function() {
 
   }); // 'Priviledged Access'
 
-  xdescribe('Account Creation:', function() {
+  describe('Account Creation:', function() {
 
     it('Signup creates a user record', function(done) {
       var options = {
