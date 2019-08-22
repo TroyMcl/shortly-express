@@ -2,7 +2,7 @@ var express = require('express');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
-
+var Promise = require('bluebird');
 
 var db = require('./app/config');
 var Users = require('./app/collections/users');
@@ -75,7 +75,43 @@ function(req, res) {
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
-//create a POST route for signup- direct to models/users.js grab username and password and pass on 
+//create a POST route for signup- direct to models/users.js grab username and password and pass on
+
+app.post('/login', function(req, res) {
+  var username = req.body.username;
+  var password = req.body.password;
+  var user = new User();
+  user.authUser(username, password)
+    .then(() => {
+      res.status(200);
+      res.redirect('/');
+      res.end();
+    })
+    .catch((err) => {
+      console.log(err);
+      red.redirect('/login')
+      res.end()
+    })
+});
+
+app.post('/signup', function(req, res) {
+  var username = req.body.username;
+  var password = req.body.password;
+  var user = new User();
+  user.createUser(username, password)
+    .then(() => {
+      res.status(201);
+      res.redirect('/')
+      res.end();
+    })
+    .catch((err) => {
+      console.log(err);
+      res.redirect('/signup');
+      res.end();
+    })
+});
+
+
 
 
 /************************************************************/

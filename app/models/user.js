@@ -3,41 +3,59 @@ var bcrypt = require('bcrypt-nodejs');
 var Promise = require('bluebird');
 
 
-
 var User = db.Model.extend({
   tableName: 'users',
   hasTimestamps: true,
-  defaults: {
-    
+
+  createUser: function(username, password) {
+    return new Promise((resolve, reject) => {
+      bcrypt.genSalt(10, function(err, salt) {
+        console.log('salt', salt)
+        bcrypt.hash(password, salt, null, function(err, hash) {
+          console.log('hashes', hash)
+          db.knex('users')
+            .insert([{username: username, password: hash, salt: salt}])
+            .then((result) => {
+              resolve(result)
+            })
+            .catch((result) => {
+              reject(result)
+            })
+        });
+      });
+    })
   },
-  createUser: function(username, password, callback) {
-    var salt = bcrypt.genSalt(10);
-    var hash = bcrypt.hashSync(password, salt);
-    db.knex('users')
-      .insert([{username: username}, {password: hash}, {salt: salt}])
-      .then(function(result) {
-        return result;
+
+  authUser: function(username, password, callback) {
+    // var username = username;
+    // var hashedPassword = bcrypt.hashSync(password);
+    return new Promise((resolve, reject) => {
+      db.knex('users')
+      .where({username: username}).select('username','salt', 'password')
+
+      .then((userinfo) => {
+        console.log('line 36 of user.js',userinfo)
+        bcrypt.compare(password, userinfo.password, null, function(err, res) {
+          if (res) {
+            resolve(res);
+          }
+          // res == true
+        })
+      .catch((res) => {
+        reject(res);
       })
-    // async into database
-    //success of db write is path????
-  },
-  getUser: function() {
-    // this.on('creating', function(model, attrs, options) {
-    //   var shasum = crypto.createHash('sha1');
-    //   shasum.update(model.get('url'));
-    //   model.set('code', shasum.digest('hex').slice(0, 5));
-    // });
+        // var salt = user.salt;
+        //   var hashedPassword = bcrypt.hashSync(password, salt);
+        //   if (hashedPassword === user.password) {
+        //     callback(null, 'success');
+
+        //   } else {
+        //     callback(null, 'error');
+        //   }
+        })
+
+    })
   }
 });
 
 module.exports = User;
-
-//Shorthand for calling .then(function() { return value }).
-
-//Without return:
-knex.insert(values).into('users')
-  .then(function() {
-    return {inserted: true};
-  });
-
-knex.insert(values).into('users').return({inserted: true});
