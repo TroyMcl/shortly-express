@@ -7,54 +7,47 @@ var User = db.Model.extend({
   tableName: 'users',
   hasTimestamps: true,
 
-  createUser: function(username, password) {
+  createUser: function (username, password) {
     return new Promise((resolve, reject) => {
-      bcrypt.genSalt(10, function(err, salt) {
-        console.log('salt', salt)
-        bcrypt.hash(password, salt, null, function(err, hash) {
-          console.log('hashes', hash)
+      bcrypt.genSalt(10, function (err, salt) {
+        bcrypt.hash(password, salt, null, function (err, hash) {
           db.knex('users')
-            .insert([{username: username, password: hash, salt: salt}])
+            .insert([{ username: username, password: hash, salt: salt }])
             .then((result) => {
-              resolve(result)
+              resolve(result);
             })
             .catch((result) => {
-              reject(result)
-            })
+              reject(result);
+            });
         });
       });
-    })
+    });
   },
 
-  authUser: function(username, password, callback) {
-    // var username = username;
-    // var hashedPassword = bcrypt.hashSync(password);
+  authUser: function (username, password, callback) {
     return new Promise((resolve, reject) => {
       db.knex('users')
-      .where({username: username}).select('username','salt', 'password')
+        .where({ username: username }).select('username', 'salt', 'password')
 
-      .then((userinfo) => {
-        console.log('line 36 of user.js',userinfo)
-        bcrypt.compare(password, userinfo.password, null, function(err, res) {
-          if (res) {
-            resolve(res);
+        .then((userinfo) => {
+          if (userinfo.length > 0) {
+            var userHash = userinfo[0].password;
+            bcrypt.compare(password, userHash, function (err, res) {
+              if (err) {
+                console.log('compare error', err);
+              }
+              resolve(res);
+            });
+          } else {
+            resolve(false);
           }
-          // res == true
         })
-      .catch((res) => {
-        reject(res);
-      })
-        // var salt = user.salt;
-        //   var hashedPassword = bcrypt.hashSync(password, salt);
-        //   if (hashedPassword === user.password) {
-        //     callback(null, 'success');
+        .catch((err) => {
+          reject(err);
+        });
+    });
 
-        //   } else {
-        //     callback(null, 'error');
-        //   }
-        })
-
-    })
+    // })
   }
 });
 
