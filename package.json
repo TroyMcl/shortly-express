@@ -24,7 +24,7 @@
     "ejs": "^2.4.1",
     "express": "^4.13.4",
     "express-partials": "^0.3.0",
-    "express-session": "^1.13.0",
+    "express-session": "^1.16.2",
     "knex": "^0.10.0",
     "nodemon": "^1.19.1",
     "request": "^2.34.0",

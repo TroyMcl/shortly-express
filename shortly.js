@@ -3,6 +3,7 @@ var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
 var Promise = require('bluebird');
+var session = require('express-session');
 
 var db = require('./app/config');
 var Users = require('./app/collections/users');
@@ -21,26 +22,28 @@ app.use(bodyParser.json());
 // Parse forms (signup/login)
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
+app.use(session({secret: 'supersecret', saveUninitialized: true, resave:true}));
 
 
-app.get('/',
+app.get('/', util.isLoggedIn,
+  function (req, res) {
+    console.log(req.session)
+    res.render('index');
+  });
+
+app.get('/create', util.isLoggedIn,
   function (req, res) {
     res.render('index');
   });
 
-app.get('/create',
-  function (req, res) {
-    res.render('index');
-  });
-
-app.get('/links',
+app.get('/links', util.isLoggedIn,
   function (req, res) {
     Links.reset().fetch().then(function (links) {
       res.status(200).send(links.models);
     });
   });
 
-app.post('/links',
+app.post('/links', util.isLoggedIn,
   function (req, res) {
     var uri = req.body.url;
 
@@ -75,7 +78,10 @@ app.post('/links',
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
-//create a POST route for signup- direct to models/users.js grab username and password and pass on
+app.get('/login',
+  function (req, res) {
+    res.render('login');
+  });
 
 app.post('/login', function (req, res) {
   var username = req.body.username;
@@ -85,11 +91,14 @@ app.post('/login', function (req, res) {
     .then((result) => {
       console.log(result);
       if (result === true) {
+        console.log('adding to session obj', req.session)
+        req.session.loggedIn = true
         res.status(200);
         res.redirect('/');
         res.end();
       } else {
         res.status(200);
+        console.log('not entering if statement')
         res.redirect('/login');
         res.end();
       }
@@ -101,12 +110,18 @@ app.post('/login', function (req, res) {
     });
 });
 
+app.get('/signup',
+  function (req, res) {
+    res.render('signup');
+  });
+
 app.post('/signup', function (req, res) {
   var username = req.body.username;
   var password = req.body.password;
   var user = new User();
   user.createUser(username, password)
     .then(() => {
+      req.session.loggedIn = true;
       res.status(201);
       res.redirect('/');
       res.end();
