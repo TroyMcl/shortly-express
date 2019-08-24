@@ -22,12 +22,19 @@ app.use(bodyParser.json());
 // Parse forms (signup/login)
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
-app.use(session({secret: 'supersecret', saveUninitialized: true, resave:true}));
+app.use(session({
+  secret: 'supersecret',
+  saveUninitialized: true,
+  resave: true,
+  cookie: {
+    expires: 100000
+  }
+}));
 
 
 app.get('/', util.isLoggedIn,
   function (req, res) {
-    console.log(req.session)
+    console.log(req.session);
     res.render('index');
   });
 
@@ -91,14 +98,15 @@ app.post('/login', function (req, res) {
     .then((result) => {
       console.log(result);
       if (result === true) {
-        console.log('adding to session obj', req.session)
-        req.session.loggedIn = true
+        console.log('adding to session obj', req.session);
+        req.session.loggedIn = true;
+        console.log(req.session);
         res.status(200);
         res.redirect('/');
         res.end();
       } else {
         res.status(200);
-        console.log('not entering if statement')
+        console.log('not entering if statement');
         res.redirect('/login');
         res.end();
       }
@@ -122,6 +130,7 @@ app.post('/signup', function (req, res) {
   user.createUser(username, password)
     .then(() => {
       req.session.loggedIn = true;
+      console.log(req.session);
       res.status(201);
       res.redirect('/');
       res.end();
