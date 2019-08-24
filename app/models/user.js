@@ -34,7 +34,7 @@ var User = db.Model.extend({
             var userHash = userinfo[0].password;
             bcrypt.compare(password, userHash, function (err, res) {
               if (err) {
-                console.log('compare error', err);
+                reject(err);
               }
               resolve(res);
             });
@@ -46,8 +46,6 @@ var User = db.Model.extend({
           reject(err);
         });
     });
-
-    // })
   }
 });
 

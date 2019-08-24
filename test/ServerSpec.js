@@ -51,11 +51,11 @@ describe('', function() {
       .where('username', '=', 'Svnh')
       .del()
       .catch(function(error) {
-        // uncomment when writing authentication tests
-        // throw {
-        //   type: 'DatabaseError',
-        //   message: 'Failed to create test setup data'
-        // };
+        //uncomment when writing authentication tests
+        throw {
+          type: 'DatabaseError',
+          message: 'Failed to create test setup data'
+        };
       });
 
     // delete user Phillip from db so it can be created later for the test
@@ -63,15 +63,15 @@ describe('', function() {
       .where('username', '=', 'Phillip')
       .del()
       .catch(function(error) {
-        // uncomment when writing authentication tests
-        // throw {
-        //   type: 'DatabaseError',
-        //   message: 'Failed to create test setup data'
-        // };
+        //uncomment when writing authentication tests
+        throw {
+          type: 'DatabaseError',
+          message: 'Failed to create test setup data'
+        };
       });
   });
 
-  xdescribe('Link creation:', function() {
+  describe('Link creation:', function() {
 
     var requestWithSession = request.defaults({jar: true});
 
@@ -80,7 +80,8 @@ describe('', function() {
       new User({
         'username': 'Phillip',
         'password': 'Phillip'
-      }).save().then(function() {
+      }).createUser('Phillip', 'Phillip')
+      .then(function() {
         var options = {
           'method': 'POST',
           'followAllRedirects': true,
@@ -97,7 +98,7 @@ describe('', function() {
       });
     });
 
-    xit('Only shortens valid urls, returning a 404 - Not found for invalid urls', function(done) {
+    it('Only shortens valid urls, returning a 404 - Not found for invalid urls', function(done) {
       var options = {
         'method': 'POST',
         'uri': 'http://127.0.0.1:4568/links',
@@ -124,7 +125,7 @@ describe('', function() {
         }
       };
 
-      xit('Responds with the short code', function(done) {
+      it('Responds with the short code', function(done) {
         requestWithSession(options, function(error, res, body) {
           expect(res.body.url).to.equal('http://roflzoo.com/');
           expect(res.body.code).to.not.be.null;
@@ -132,7 +133,7 @@ describe('', function() {
         });
       });
 
-      xit('New links create a database entry', function(done) {
+      it('New links create a database entry', function(done) {
         requestWithSession(options, function(error, res, body) {
           db.knex('urls')
             .where('url', '=', 'http://roflzoo.com/')
@@ -146,7 +147,7 @@ describe('', function() {
         });
       });
 
-      xit('Fetches the link url title', function (done) {
+      it('Fetches the link url title', function (done) {
         requestWithSession(options, function(error, res, body) {
           db.knex('urls')
             .where('title', '=', 'Funny pictures of animals, funny dog pictures')
@@ -248,6 +249,20 @@ describe('', function() {
       });
     });
 
+    it('Redirects to login page when a user logs out', function(done) {
+      request('http://127.0.0.1:4568/logout', function(error, res, body) {
+        expect(res.req.path).to.equal('/login');
+        done();
+      });
+    });
+
+    it('Redirects to login page when a user trys a page that does not exist', function(done) {
+      request('http://127.0.0.1:4568/random', function(error, res, body) {
+        expect(res.req.path).to.equal('/login');
+        done();
+      });
+    });
+
   }); // 'Priviledged Access'
 
   describe('Account Creation:', function() {
@@ -296,6 +311,22 @@ describe('', function() {
       });
     });
 
+    it('Signup will not creat a new user if user name is already in database', function(done) {
+      var options = {
+        'method': 'POST',
+        'uri': 'http://127.0.0.1:4568/signup',
+        'json': {
+          'username': 'Phillip',
+          'password': 'Fred'
+        }
+      };
+
+      request(options, function(error, res, body) {
+        expect(res.headers.location).to.equal('/');
+        done();
+      });
+    });
+
   }); // 'Account Creation'
 
   describe('Account Login:', function() {
@@ -306,12 +337,12 @@ describe('', function() {
       new User({
         'username': 'Phillip',
         'password': 'Phillip'
-      }).save().then(function() {
+      }).createUser('Phillip', 'Phillip').then(function() {
         done();
       });
     });
 
-    xit('Logs in existing users', function(done) {
+    it('Logs in existing users', function(done) {
       var options = {
         'method': 'POST',
         'uri': 'http://127.0.0.1:4568/login',
@@ -342,6 +373,7 @@ describe('', function() {
         done();
       });
     });
+
 
   }); // 'Account Login'
 

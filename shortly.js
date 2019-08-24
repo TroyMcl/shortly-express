@@ -49,10 +49,9 @@ app.get('/links', util.isLoggedIn,
     });
   });
 
-app.post('/links', util.isLoggedIn,
+app.post('/links',
   function (req, res) {
     var uri = req.body.url;
-
     if (!util.isValidUrl(uri)) {
       console.log('Not a valid url: ', uri);
       return res.sendStatus(404);
@@ -86,7 +85,6 @@ app.post('/links', util.isLoggedIn,
 /************************************************************/
 app.get('/login',
   function (req, res) {
-    console.log('req.session in get /login', req.session);
     res.render('login');
   });
 
@@ -96,7 +94,6 @@ app.post('/login', function (req, res) {
   var user = new User();
   user.authUser(username, password)
     .then((result) => {
-      console.log(result);
       if (result === true) {
         req.session.loggedIn = true;
         res.status(200);
@@ -109,7 +106,7 @@ app.post('/login', function (req, res) {
       }
     })
     .catch((err) => {
-      red.redirect('/login');
+      res.redirect('/login');
       res.end();
     });
 });
@@ -169,3 +166,4 @@ app.get('/*', function (req, res) {
 });
 
 module.exports = app;
+
